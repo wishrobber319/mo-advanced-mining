@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Patch>
+
+    <Operation Class="PatchOperationFindMod">
+        <mods>
+            <li>Mines 2.0</li>
+        </mods>
+        <match Class="PatchOperationReplace">
+            <xpath>/Defs/ResearchProjectDef[defName="MinesAutomated_ResearchProjectDef_minecraft"]/label</xpath>
+            <value>
+                <label>Advanced Mining</label>
+            </value>
+        </match>
+    </Operation>
+
+    <!-- Hide the Mines 2.0 "mine" building. Its recipes now live on MO's mine shaft, so the
+         original building is redundant. Remove its build-menu category so it never appears in the
+         Architect menu, and remove its researchPrerequisites so it no longer shows as an unlock
+         under the Advanced Mining research card. Together this orphans it entirely. -->
+    <Operation Class="PatchOperationFindMod">
+        <mods>
+            <li>Mines 2.0</li>
+        </mods>
+        <match Class="PatchOperationSequence">
+            <operations>
+                <li Class="PatchOperationRemove">
+                    <xpath>/Defs/ThingDef[defName="MinesAutomated_ThingDef_Mine"]/designationCategory</xpath>
+                </li>
+                <li Class="PatchOperationRemove">
+                    <xpath>/Defs/ThingDef[defName="MinesAutomated_ThingDef_Mine"]/researchPrerequisites</xpath>
+                </li>
+            </operations>
+        </match>
+    </Operation>
+
+    <!-- Swap the vanilla Smithing prerequisite for Medieval Overhaul's Mining research.
+         Requires both mods so the DankPyon_Mining def actually exists. -->
+    <Operation Class="PatchOperationFindMod">
+        <mods>
+            <li>Mines 2.0</li>
+            <li>Medieval Overhaul</li>
+        </mods>
+        <match Class="PatchOperationReplace">
+            <xpath>/Defs/ResearchProjectDef[defName="MinesAutomated_ResearchProjectDef_minecraft"]/prerequisites/li[text()="Smithing"]</xpath>
+            <value>
+                <li>DankPyon_Mining</li>
+            </value>
+        </match>
+    </Operation>
+
+</Patch>

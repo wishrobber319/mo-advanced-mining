@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ModMetaData>
+    <packageId>wishRobber.moadvancedmining</packageId>
+    <name>Medieval Overhaul - Advanced Mining</name>
+    <author>wishRobber</author>
+    <description>Integrates Mines 2.0 with Medieval Overhaul. Renames the "Minecraft" research to "Advanced Mining" and changes its prerequisite from Smithing to Medieval Overhaul's Mining research. The Mines 2.0 mining recipes are added to Medieval Overhaul's mine shaft, and the redundant Mines 2.0 "mine" building is hidden from the build menu and research tree. Requires both Mines 2.0 and Medieval Overhaul.</description>
+    <supportedVersions>
+        <li>1.6</li>
+    </supportedVersions>
+    <modDependencies>
+        <li>
+            <packageId>Cain.Mineshaft</packageId>
+            <displayName>Mines 2.0</displayName>
+            <steamWorkshopUrl>steam://url/CommunityFilePage/2503894706</steamWorkshopUrl>
+        </li>
+        <li>
+            <packageId>DankPyon.Medieval.Overhaul</packageId>
+            <displayName>Medieval Overhaul</displayName>
+            <steamWorkshopUrl>steam://url/CommunityFilePage/3219596926</steamWorkshopUrl>
+        </li>
+    </modDependencies>
+    <loadAfter>
+        <li>Cain.Mineshaft</li>
+        <li>DankPyon.Medieval.Overhaul</li>
+    </loadAfter>
+</ModMetaData>
