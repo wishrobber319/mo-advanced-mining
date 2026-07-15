@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Patch>
+    <!-- Medieval Overhaul lets you "dig clay" (recipe DankPyon_Gather_Clay) only at the Digging spot.
+         Make the Mine shaft able to dig clay too, so it's the one-stop mining bench. MO locks the recipe
+         to the digging spot via recipeUsers on its abstract base DankPyon_DiggingSpotBase; we append the
+         mine shaft there (the same way MO's own mine-shaft recipes declare recipeUsers -> DankPyon_MineShaft).
+         Both buildings are Building_WorkTable, so the "Dig clay" bill just appears on the mine shaft. -->
+    <Operation Class="PatchOperationFindMod">
+        <mods>
+            <li>Medieval Overhaul</li>
+        </mods>
+        <match Class="PatchOperationAdd">
+            <xpath>Defs/RecipeDef[@Name="DankPyon_DiggingSpotBase"]/recipeUsers</xpath>
+            <value>
+                <li>DankPyon_MineShaft</li>
+            </value>
+        </match>
+    </Operation>
+</Patch>
