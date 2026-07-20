@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    Make Medieval Overhaul's "Mithril" research (DankPyon_Plasteel) require Mines 2.0's "Advanced
+    Mining" research (MinesAutomated_ResearchProjectDef_minecraft, which this mod relabels). Combined
+    with moving the raw-mithril mining recipe onto the Mithril research (see AddRecipesToMineShaft),
+    the progression is: Advanced Mining -> Mithril -> mine raw mithril.
+
+    Requires both mods: DankPyon_Plasteel is MO's, and the Advanced Mining research is Mines 2.0's, so
+    the prerequisite reference only resolves when both are loaded.
+-->
+<Patch>
+    <Operation Class="PatchOperationFindMod">
+        <mods>
+            <li>Medieval Overhaul</li>
+            <li>Mines 2.0</li>
+        </mods>
+        <match Class="PatchOperationAdd">
+            <xpath>Defs/ResearchProjectDef[defName="DankPyon_Plasteel"]/prerequisites</xpath>
+            <value>
+                <li>MinesAutomated_ResearchProjectDef_minecraft</li>
+            </value>
+        </match>
+    </Operation>
+</Patch>
