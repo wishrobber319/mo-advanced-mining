@@ -46,6 +46,15 @@ namespace MinesShaftBridge
             { "DankPyon_PlasteelOre", "DankPyon_Plasteel" },
         };
 
+        // Remove the Mines 2.0 ability to mine these resources entirely: detach the recipe from every
+        // building and clear its research unlock, so it can't be crafted anywhere and doesn't show on
+        // any research card. Eltex (Vanilla Psycasts Expanded) shouldn't be auto-mineable - it's meant
+        // to come from eltex ore veins / meteors, not a mine-shaft bill.
+        private static readonly HashSet<string> RemovedProducts = new HashSet<string>
+        {
+            "VPE_Eltex",
+        };
+
         private static readonly FieldInfo AllRecipesCachedField =
             typeof(ThingDef).GetField("allRecipesCached", BindingFlags.Instance | BindingFlags.NonPublic);
 
@@ -61,10 +70,22 @@ namespace MinesShaftBridge
             int added = 0;
             int skipped = 0;
             int reGated = 0;
+            int removed = 0;
             foreach (RecipeDef recipe in DefDatabase<RecipeDef>.AllDefsListForReading)
             {
                 if (recipe.defName == null || !recipe.defName.StartsWith(MinesRecipePrefix))
                 {
+                    continue;
+                }
+
+                // Fully remove the ability to mine certain resources (e.g. eltex): detach the recipe
+                // from every building and clear its research unlock so it's inert.
+                if (Produces(recipe, RemovedProducts))
+                {
+                    recipe.recipeUsers = new List<ThingDef>();
+                    recipe.researchPrerequisite = null;
+                    recipe.researchPrerequisites?.Clear();
+                    removed++;
                     continue;
                 }
 
@@ -97,7 +118,7 @@ namespace MinesShaftBridge
                 AllRecipesCachedField?.SetValue(mineShaft, null);
             }
 
-            Log.Message($"[MO Advanced Mining] Added {added} Mines 2.0 recipe(s) to {MineShaftDefName}, skipped {skipped} duplicate(s), re-gated {reGated} recipe(s) to fitting research.");
+            Log.Message($"[MO Advanced Mining] Added {added} Mines 2.0 recipe(s) to {MineShaftDefName}, skipped {skipped} duplicate(s), re-gated {reGated} recipe(s) to fitting research, removed {removed} recipe(s).");
         }
 
         // If this recipe produces a mapped resource, repoint its research prerequisite (from Mines 2.0's
@@ -134,6 +155,11 @@ namespace MinesShaftBridge
 
         private static bool ProducesExcludedResource(RecipeDef recipe)
         {
+            return Produces(recipe, ExcludedProducts);
+        }
+
+        private static bool Produces(RecipeDef recipe, HashSet<string> products)
+        {
             if (recipe.products == null)
             {
                 return false;
@@ -141,7 +167,7 @@ namespace MinesShaftBridge
 
             foreach (ThingDefCountClass product in recipe.products)
             {
-                if (product.thingDef != null && ExcludedProducts.Contains(product.thingDef.defName))
+                if (product.thingDef != null && products.Contains(product.thingDef.defName))
                 {
                     return true;
                 }
