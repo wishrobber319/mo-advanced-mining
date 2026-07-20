@@ -15,7 +15,6 @@ namespace MinesShaftBridge
     {
         private const string MineShaftDefName = "DankPyon_MineShaft";
         private const string MinesRecipePrefix = "MinesAutomated_RecipeDef_";
-        private const string MiningResearchDefName = "DankPyon_Mining";
         private const string AdvancedMiningResearchDefName = "MinesAutomated_ResearchProjectDef_minecraft";
 
         // Medieval Overhaul's mine shaft already has native bills for these resources, so we skip
@@ -31,16 +30,20 @@ namespace MinesShaftBridge
             "DankPyon_SilverOre",
         };
 
-        // Coal and salt are basic resources, but Mines 2.0 code-generates its "Mine for ..." recipes
-        // gated behind its own research (MinesAutomated_ResearchProjectDef_minecraft, relabeled
-        // "Advanced Mining"), so its coal/salt recipes show up as unlocks on that research card.
-        // Re-point just those two to Medieval Overhaul's "Mining" (DankPyon_Mining) research, matching
-        // MO's own ungated mine-shaft coal/salt bills (which are available from Mining). Done in code
-        // because Mines 2.0 builds these recipes at startup and blocks XML PatchOperations on them.
-        private static readonly HashSet<string> MoveToMiningProducts = new HashSet<string>
+        // Mines 2.0 code-generates its "Mine for ..." recipes gated behind its own research
+        // (MinesAutomated_ResearchProjectDef_minecraft, relabeled "Advanced Mining"). Re-point specific
+        // resources to more fitting Medieval Overhaul research so they unlock where players expect:
+        //   coal / salt  (DankPyon_Coal/Salt)     -> DankPyon_Mining   (basic; matches MO's own ungated
+        //                                             mine-shaft coal/salt bills, available at Mining)
+        //   raw mithril  (DankPyon_PlasteelOre)   -> DankPyon_Plasteel (MO's "Mithril" research, which
+        //                                             also gates smelting raw mithril into ingots)
+        // Applied whether or not the recipe is bridged to the mine shaft. Done in code because Mines 2.0
+        // builds these recipes at startup and blocks XML PatchOperations on them.
+        private static readonly Dictionary<string, string> ResearchByProduct = new Dictionary<string, string>
         {
-            "DankPyon_Coal",
-            "DankPyon_Salt",
+            { "DankPyon_Coal", "DankPyon_Mining" },
+            { "DankPyon_Salt", "DankPyon_Mining" },
+            { "DankPyon_PlasteelOre", "DankPyon_Plasteel" },
         };
 
         private static readonly FieldInfo AllRecipesCachedField =
@@ -55,8 +58,6 @@ namespace MinesShaftBridge
                 return;
             }
 
-            ResearchProjectDef miningResearch = DefDatabase<ResearchProjectDef>.GetNamedSilentFail(MiningResearchDefName);
-
             int added = 0;
             int skipped = 0;
             int reGated = 0;
@@ -67,17 +68,12 @@ namespace MinesShaftBridge
                     continue;
                 }
 
+                // Move mapped resources (coal/salt -> Mining, raw mithril -> Mithril) off the
+                // "Advanced Mining" research, regardless of whether this recipe is bridged below.
+                reGated += RepointResearch(recipe);
+
                 if (ProducesExcludedResource(recipe))
                 {
-                    // Move coal/salt off the "Advanced Mining" research onto MO's "Mining" research.
-                    if (miningResearch != null && Produces(recipe, MoveToMiningProducts))
-                    {
-                        recipe.researchPrerequisite = miningResearch;
-                        recipe.researchPrerequisites?.RemoveAll(
-                            r => r == null || r.defName == AdvancedMiningResearchDefName);
-                        reGated++;
-                    }
-
                     skipped++;
                     continue;
                 }
@@ -101,15 +97,42 @@ namespace MinesShaftBridge
                 AllRecipesCachedField?.SetValue(mineShaft, null);
             }
 
-            Log.Message($"[MO Advanced Mining] Added {added} Mines 2.0 recipe(s) to {MineShaftDefName}, skipped {skipped} duplicate(s), re-gated {reGated} coal/salt recipe(s) to {MiningResearchDefName}.");
+            Log.Message($"[MO Advanced Mining] Added {added} Mines 2.0 recipe(s) to {MineShaftDefName}, skipped {skipped} duplicate(s), re-gated {reGated} recipe(s) to fitting research.");
+        }
+
+        // If this recipe produces a mapped resource, repoint its research prerequisite (from Mines 2.0's
+        // "Advanced Mining") to the mapped Medieval Overhaul research. Returns 1 if changed, else 0.
+        private static int RepointResearch(RecipeDef recipe)
+        {
+            if (recipe.products == null)
+            {
+                return 0;
+            }
+
+            foreach (ThingDefCountClass product in recipe.products)
+            {
+                if (product.thingDef == null
+                    || !ResearchByProduct.TryGetValue(product.thingDef.defName, out string researchDefName))
+                {
+                    continue;
+                }
+
+                ResearchProjectDef research = DefDatabase<ResearchProjectDef>.GetNamedSilentFail(researchDefName);
+                if (research == null)
+                {
+                    continue;
+                }
+
+                recipe.researchPrerequisite = research;
+                recipe.researchPrerequisites?.RemoveAll(
+                    r => r == null || r.defName == AdvancedMiningResearchDefName);
+                return 1;
+            }
+
+            return 0;
         }
 
         private static bool ProducesExcludedResource(RecipeDef recipe)
-        {
-            return Produces(recipe, ExcludedProducts);
-        }
-
-        private static bool Produces(RecipeDef recipe, HashSet<string> products)
         {
             if (recipe.products == null)
             {
@@ -118,7 +141,7 @@ namespace MinesShaftBridge
 
             foreach (ThingDefCountClass product in recipe.products)
             {
-                if (product.thingDef != null && products.Contains(product.thingDef.defName))
+                if (product.thingDef != null && ExcludedProducts.Contains(product.thingDef.defName))
                 {
                     return true;
                 }
