@@ -1,0 +1,10 @@
+[b]One clean medieval mining system.[/b] Folds Mines 2.0 into Medieval Overhaul's mine shaft, so you get deep-mining without a second, redundant building.
+
+[hr][/hr]
+[b]What's inside[/b]
+[list]
+[*][b]Mines 2.0 on the mine shaft.[/b] Its deep-mining recipes and research attach to Medieval Overhaul's mine shaft, renamed Advanced Mining.
+[*][b]No duplicate building.[/b] The standalone Mines 2.0 structure is hidden.
+[*][b]Tidied recipes.[/b] Raw mithril mining sits under the Mithril research, and the eltex-mining option is removed.
+[*][b]Requires Medieval Overhaul and Mines 2.0.[/b]
+[/list]
